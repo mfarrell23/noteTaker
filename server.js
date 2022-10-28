@@ -1,7 +1,6 @@
 const express = require('express');
-const { fstat } = require('fs');
 const path = require('path');
-// Helper method for generating unique ids
+const fs= require('fs');
 const notes = require('./db/db.json');
 
 const PORT = 3001;
@@ -20,81 +19,70 @@ app.get('/notes', (req, res) =>
   res.sendFile(path.join(__dirname, '/public/notes.html'))
 );
 
-// GET request for reviews
+// GET request for notes
 app.get('/api/notes', (req, res) => {
   console.info(`GET /api/notes`);
   res.status(200).json(notes);
 });
 
 
-// POST request to add a review
+// POST request to add a note
 app.post('/api/notes', (req, res) => {
   // Log that a POST request was received
-  console.info(`${req.method} request received to add a review`);
+  console.info(`${req.method} request received to add a note`);
 
-  // Destructuring assignment for the items in req.body
-//   const { product, review, username } = req.body;
 
-  // If all the required properties are present
-//   if (product && review && username) {
-    // Variable for the object we will save
     const newNote = {
-    // note_id: uuid(),
+    //  note_id: uuid(),
         ...req.body
     };
+    // pushing note into file
     const notes = require('./db/db.json');
     notes.push(newNote)
     const response = {
       status: 'success',
       body: newNote,
     };
-
+// writing note to file
     console.log(response);
-    fs.writeFile('db/db.json',notes,(err)=>{
+    fs.writeFile('./db/db.json',JSON.stringify(notes),(err)=>{
         if(err){
         console.log(err)
     }else{
         console.log('new note added')
     }
     })
-//   } else {
-//     res.status(500).json('Error in posting review');
-//   }
 });
+ // Obtain existing reviews
+ fs.readFile('./db/db.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+    } else {
+      // Convert string into JSON object
+      const parsedNotes = JSON.parse(data);
 
-// GET request for a specific review's upvotes
-app.get('/api/upvotes/:review_id', (req, res) => {
-  console.info(`${req.method} request received to get upvotes for a review`);
-  for (let i = 0; i < reviews.length; i++) {
-    const currentReview = reviews[i];
-    if (currentReview.review_id === req.params.review_id) {
-      res.status(200).json({
-        message: `The review with ID ${currentReview.review_id} has ${currentReview.upvotes}`,
-        upvotes: currentReview.upvotes,
-      });
-      return;
+      // Add a new review
+      parsedNotess.push(newNote);
+
+      // Write updated reviews back to the file
+      fs.writeFile(
+        './db/db.json',
+        JSON.stringify(parsedNotes, null, 4),
+        (writeErr) =>
+          writeErr
+            ? console.error(writeErr)
+            : console.info('Successfully updated notes!')
+      );
     }
-  }
-  res.status(404).json('Review ID not found');
-});
+    const response = {
+        status: 'success',
+        body: newNote,
+      };
+      console.log(response);
+    res.status(201).json(response);
+    res.status(500).json('Error in posting note');
 
-// POST request to upvote a review
-app.post('/api/upvotes/:review_id', (req, res) => {
-  if (req.body && req.params.review_id) {
-    console.info(`${req.method} request received to upvote a review`);
-    const reviewId = req.params.review_id;
-    for (let i = 0; i < reviews.length; i++) {
-      const currentReview = reviews[i];
-      if (currentReview.review_id === reviewId) {
-        currentReview.upvotes += 1;
-        res.status(200).json(`New upvote count is: ${currentReview.upvotes}!`);
-        return;
-      }
-    }
-    res.status(404).json('Review ID not found');
-  }
-});
-
+  
 app.listen(PORT, () =>
   console.log(`App listening at http://localhost:${PORT} 🚀`)
-);
+    );

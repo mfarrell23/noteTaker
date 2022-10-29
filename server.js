@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs= require('fs');
 const notes = require('./db/db.json');
-
+const uuid= require('uuid');
 const PORT = 3001;
 
 const app = express();
@@ -33,11 +33,11 @@ app.post('/api/notes', (req, res) => {
 
 
     const newNote = {
-    //  note_id: uuid(),
         ...req.body
     };
     // pushing note into file
     const notes = require('./db/db.json');
+    newNote.id= uuid.v4()
     notes.push(newNote)
     const response = {
       status: 'success',
@@ -45,7 +45,7 @@ app.post('/api/notes', (req, res) => {
     };
 // writing note to file
     console.log(response);
-    fs.writeFile('./db/db.json',JSON.stringify(notes),(err)=>{
+    fs.writeFile('./db/db.json',JSON.stringify(notes, null, 4),(err)=>{
         if(err){
         console.log(err)
     }else{
@@ -53,6 +53,7 @@ app.post('/api/notes', (req, res) => {
     }
     })
 });
+
 
   
 app.listen(PORT, () =>
